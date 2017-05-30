@@ -1,0 +1,11 @@
+//html5looper thing start ----
+problems:
+	how to track what element was right clicked
+			like doc.getElById(xx) or smtn
+		and then track menu elements
+	pure audio player problem:
+		no place to right click with "audio" tag with just a controller bar
+			bubbles? gotsta finds out.
+
+USE SWITCH CASE INSTEAD OF IFS
+//html5looper thing end ----

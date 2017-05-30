@@ -1,0 +1,33 @@
+{
+
+  "manifest_version": 2,
+  "name": "Custom Loop",
+  "version": "1.0",
+
+  "description": "Loop portions of html5/webm/other videos and audio",
+  "homepage_url": "https://github.com/losnappas",
+  "icons": {
+    "16": "icons/icon.svg",
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "<all_urls>"
+  ],
+
+  "background": {
+    "scripts": ["background/background.js"]
+  }
+  ,
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_scripts/html5looper.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
