@@ -80,3 +80,6 @@ browser.contextMenus.create({
 browser.contextMenus.onClicked.addListener(timeListener);
 
 browser.runtime.onMessage.addListener(uiUpdate);
+
+
+

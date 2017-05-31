@@ -1,4 +1,4 @@
-#### part looper
+## CUSTOM LOOP
 
 loop parts of audio/video.
 

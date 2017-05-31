@@ -5,7 +5,7 @@
   "version": "1.0",
 
   "description": "Loop portions of html5/webm/other videos and audio",
-  "homepage_url": "https://github.com/losnappas",
+  "homepage_url": "https://github.com/losnappas/Custom-Loop",
   "icons": {
     "16": "icons/icon.svg",
     "48": "icons/icon.svg",
@@ -27,7 +27,8 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content_scripts/html5looper.js"],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "all_frames": true
     }
   ]
 }
