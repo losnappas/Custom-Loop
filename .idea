@@ -9,3 +9,11 @@ problems:
 
 USE SWITCH CASE INSTEAD OF IFS
 //html5looper thing end ----
+
+might be bugged if you only right click once or smtn?
+	testing's gonna be a pain.
+
+
+fix bug:
+no endtime set-> doesn't always work.
+	endtime===video endtime = gamble

@@ -7,7 +7,6 @@ var loopTimer = (request, sender, sendResponse) =>{
 	// console.log("looptimer", media);
 
 	if (!media) return;
-	let settingInterval = true;
 	// console.log('r',request);
 	// console.log('s', sender);
 	// console.log('sr', sendResponse);
@@ -22,16 +21,13 @@ var loopTimer = (request, sender, sendResponse) =>{
 	switch(request.command){
 		case "looperstart":
 			startTime = media.currentTime;
-			// media.onseeking = setTime(true);
 			break;
 		case "looperend":
 			endTime = media.currentTime;
-			// media.onseeking = setTime(false);
 			break;
 		case "looperreset":
 			endTime = 817;
 			startTime = 817;
-			settingInterval=false;
 			clearInterval(window.interval);
 			browser.runtime.sendMessage({"start": startTime, "end": endTime});
 			return;
@@ -49,24 +45,17 @@ var loopTimer = (request, sender, sendResponse) =>{
 		startTime = 0;
 
 	clearInterval(window.interval);
-
-	if (settingInterval)
-		window.interval = setInterval(timer, (1000*(1/media.playbackRate)));
-
+	window.interval = setInterval(timer, (1000*(1/media.playbackRate)));
 
 	// return sendResponse({start: startTime, end: endTime});
 	browser.runtime.sendMessage({"start": startTime, "end": endTime});
 }
 
-setTime = beginning => {
-
-	if (beginning) startTime = media.currentTime;
-	else endTime = media.currentTime;
-}
-
+//check once a second if media is reaching the loop endTime
 timer = () => {
 	// console.log("timer is running");
-	if(media.loop && !media.paused && endTime<=media.currentTime){
+	if(media.loop && !media.paused && (endTime<=media.currentTime
+		|| (media.duration===endTime && media.currentTime>=endTime-1))){
 		media.currentTime = startTime;
 		// console.log("timer");
 	}
