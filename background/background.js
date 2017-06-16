@@ -1,3 +1,4 @@
+//TO-DO: time display bugs out on iframes.
 var currentStart="not set";
 var currentEnd="not set";
 var displayStart="not set";

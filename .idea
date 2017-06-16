@@ -17,3 +17,14 @@ might be bugged if you only right click once or smtn?
 fix bug:
 no endtime set-> doesn't always work.
 	endtime===video endtime = gamble
+possible fixes:
+	ended listener
+	setTimeOut
+	
+
+multi-checkpoint system.
+	list? array? push/pop? points
+
+
+
+contextMenus not supported on FF for Android -> does not work? untested . . .
