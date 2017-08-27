@@ -7,16 +7,14 @@ var displayEnd="not set";
 
 
 var timeListener = (info, tab) => {
-	// console.log('timeListener');
-
-
+	// console.log('timeListener', info, tab);
 
     var gettingActiveTab = browser.tabs.query({active: true, currentWindow: true});
-
+    let frameId = info.frameId;
     gettingActiveTab.then((tabs) => {
     	if (info.menuItemId.indexOf("looper")!==-1){
 			browser.tabs.sendMessage(tabs[0].id, 
-				{command: info.menuItemId, start: currentStart, end: currentEnd});			
+				{command: info.menuItemId, start: currentStart, end: currentEnd}, {frameId});			
 		}
       });
 }
@@ -76,11 +74,15 @@ browser.contextMenus.create({
 	title: "Reset",
 	contexts: ["audio", "video"]
 });
+browser.contextMenus.create({
+	id: "looperadvanced",
+	title: "Advanced",
+	contexts: ["audio", "video"]
+});
 
 
 browser.contextMenus.onClicked.addListener(timeListener);
 
 browser.runtime.onMessage.addListener(uiUpdate);
-
 
 

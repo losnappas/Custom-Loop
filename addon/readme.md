@@ -11,3 +11,16 @@ enjoy
 right click to enable on a new media element.
 
 only works on 1 media element at a time.
+
+
+TO-DO
+check out AudioBufferSourceNode.loopStart & .loopend ?
+react "advanced menu"
+
+installation:
+
+npm install
+npm run build
+npm start
+
+npm start requires web-ext and uses ff dev ed but you can edit the package.json
