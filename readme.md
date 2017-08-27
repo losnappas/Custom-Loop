@@ -19,10 +19,8 @@ react "advanced menu"
 
 installation:
 
-`npm install`
-
-`npm run build`
-
-`npm start` check the package.json
+npm install
+npm run build
+npm start
 
 npm start requires web-ext and uses ff dev ed but you can edit the package.json
