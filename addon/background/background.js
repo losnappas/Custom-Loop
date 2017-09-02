@@ -9,14 +9,15 @@ var displayEnd="not set";
 var timeListener = (info, tab) => {
 	// console.log('timeListener', info, tab);
 
-    var gettingActiveTab = browser.tabs.query({active: true, currentWindow: true});
-    let frameId = info.frameId;
-    gettingActiveTab.then((tabs) => {
-    	if (info.menuItemId.indexOf("looper")!==-1){
-			browser.tabs.sendMessage(tabs[0].id, 
-				{command: info.menuItemId, start: currentStart, end: currentEnd}, {frameId});			
-		}
-      });
+	//HOW TO not require <"all_urls">:
+	//execute the script, then inside the script compare media srcUrls to find the correct element.
+	browser.tabs.executeScript({
+		file: "/content_scripts/html5looper.js",
+		frameId: info.frameId
+	})
+	.then( () => browser.tabs.sendMessage(tab.id, {url: info.srcUrl, command: info.menuItemId, start: currentStart, end: currentEnd}) )
+	.catch( (err)=> console.error("reloadListener error:", err)	);	
+
 }
 
 

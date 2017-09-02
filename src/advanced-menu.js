@@ -9,8 +9,6 @@ import 'react-s-alert/dist/s-alert-default.css';
 import 'react-s-alert/dist/s-alert-css-effects/jelly.css';
 
 
-//TO-DO: add manual text input for time ranges.
-
 //range tooltip wouldn't show if const Range = createSliderWithTooltip(Slider.Range); and <Tooltip prefixCls="rc-slider-tooltip" (as example was) + react-modal-dialog
 //put in an issue report.
 // https://react-component.github.io/slider/examples/handle.html
@@ -80,15 +78,17 @@ class AdvancedMenuContent extends React.Component{
 
   	handleClose = () => Alert.closeAll();
 
-  	handleAddNewToggles = (e) => {
+  	handleAddNewToggles = () => {
   		let togglesAdded = this.state.value;
-  		togglesAdded.push(0, 0);
+  		togglesAdded = ([0, 0]).concat(togglesAdded);
   		this.handleChange(togglesAdded);
   		this.colorTrack();
   	}
 
   	handleChange = (newValue) => this.setState({value: newValue});
 
+  	//milestone for version 5000
+  	//somehow transform into promises for no good reason other than getting rid of the global variable
   	saveChanges = () => {
   		this.props.loopTimer(this.state.value);
   		this.handleClose();
@@ -103,6 +103,12 @@ class AdvancedMenuContent extends React.Component{
   		}
   		this.setState({trackColors: finishedTrack});
 	}  	
+
+	handleManualChange = event => {
+		//throws an error after typing a comma, but catching it is not a good idea since nothing can be done about it
+		//milestone 100: parse the input better, giving an error if saving while the array is no good
+		this.handleChange(JSON.parse( "["+event.target.value+"]")); //same as arrayify from html5looper.js. why is there no easy way of helper functions
+	}
 
 // bugged*
 	// reset = () => {
@@ -122,17 +128,21 @@ class AdvancedMenuContent extends React.Component{
 	//*bug? - if value={this.state.value} in Range, then handleAddNewToggles glitches out.
 	//and with value absent, the Range can't be reset.
 	// or mb it can considering addToggles works? next version milestone.
+	//the bug was related to .push(), .concat([]) worked fine.
 	render() {
 		return (<div>
 					<h2 style={{fontSize: '16px', fontWeight: 'normal', background: 'transparent', textAlign: 'start', margin: 0, border: 0, padding: 0}}>Custom Loop</h2>
-					<p style={{fontSize: '12px'}}>0 second intervals will be skipped.</p>
+					<div style={{height: '25px'}}>
+						<input style={{display: 'inline-block', float:'right'}} type="text" onChange={this.handleManualChange} value={this.state.value} />
+						<p style={{fontSize: '12px'}}>0 second intervals will be skipped.</p>
+					</div>
 						<Range
 							min={0}
 							max={this.props.max}
-							defaultValue={this.props.defaults ? this.props.defaults : [0,0]}
 							onChange={this.handleChange}
 							handle={handle}
 							trackStyle={this.state.trackColors}
+							value={this.state.value}
 							></Range>
 
 						<div style={{marginTop: '5px'}}>
@@ -164,22 +174,15 @@ export default class AdvancedMenu extends React.Component{
 
 	// listener for context menu item
 	componentDidMount(){
-		if (!browser.runtime.onMessage.hasListener(this.handleOpen))
-				browser.runtime.onMessage.addListener(this.handleOpen);
-	}
-
-
-	handleOpen = (request) => {
-		if (request.command=='looperadvanced') {
-
-			//https://www.npmjs.com/package/react-s-alert
+		//https://www.npmjs.com/package/react-s-alert
 			Alert.warning(<AdvancedMenuContent  {...this.props} />, {
 	            position: 'bottom',
 	            effect: 'jelly',
 	            timeout: 'none'
         	});
-		}
 	}
+
+
 
 	render(){
 		return (<Alert stack={false} style={{padding: '19.5px'}} />);
