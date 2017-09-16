@@ -79,12 +79,12 @@ class AdvancedMenuContent extends React.Component{
   	handleClose = () => Alert.closeAll();
 
   	handleAddNewToggles = () => {
-  		let togglesAdded = this.state.value;
-  		togglesAdded = ([0, 0]).concat(togglesAdded);
+  		//javascript arrays are passed by reference. concat returns new array
+  		let togglesAdded = ([0, 0]).concat(this.state.value);
   		this.handleChange(togglesAdded);
   		this.colorTrack();
   	}
-
+  	/* could do fancy syntax: value=>..({value}) */
   	handleChange = (newValue) => this.setState({value: newValue});
 
   	//milestone for version 5000
@@ -110,30 +110,17 @@ class AdvancedMenuContent extends React.Component{
 		this.handleChange(JSON.parse( "["+event.target.value+"]")); //same as arrayify from html5looper.js. why is there no easy way of helper functions
 	}
 
-// bugged*
-	// reset = () => {
-	// 	this.setState({
-	// 		value: [0,0],
-	// 		trackColors: [{backgroundColor: 'green'}],
-	// 	});
-	// }
-// currently bugged* ->
-/*						<button
-							onClick={this.reset}
-							style={saveButtonStyle}
-							>Reset</button>
-*/
+	flooring = () => {
+		let x = this.state.value.slice();
+		x.forEach((v, i)=>{x[i]=~~v});
+		return x;
+	}
 
-
-	//*bug? - if value={this.state.value} in Range, then handleAddNewToggles glitches out.
-	//and with value absent, the Range can't be reset.
-	// or mb it can considering addToggles works? next version milestone.
-	//the bug was related to .push(), .concat([]) worked fine.
 	render() {
 		return (<div>
 					<h2 style={{fontSize: '16px', fontWeight: 'normal', background: 'transparent', textAlign: 'start', margin: 0, border: 0, padding: 0}}>Custom Loop</h2>
 					<div style={{height: '25px'}}>
-						<input style={{display: 'inline-block', float:'right'}} type="text" onChange={this.handleManualChange} value={this.state.value} />
+						<input style={{display: 'inline-block', float:'right'}} type="text" onChange={this.handleManualChange} value={this.flooring()} />
 						<p style={{fontSize: '12px'}}>0 second intervals will be skipped.</p>
 					</div>
 						<Range

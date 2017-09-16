@@ -111,11 +111,11 @@ var loopTimer = (request, sender, sendResponse) =>{
 	if(browser.runtime.onMessage.hasListener(loopTimer))
 		browser.runtime.onMessage.removeListener(loopTimer);
 
-	// element = 
-	if(request.url)
+
+	if(typeof request.url != undefined)
 		findElement(request.url);
-	// console.log(element)
-	if (typeof element === undefined || !element) return;
+
+	if (typeof element == undefined || !element) return;
 
 
 	let startTime, endTime, reseted=false;
