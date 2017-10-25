@@ -1,0 +1,57 @@
+.customloop button {
+	width: 80px;
+	height: 17px;
+	cursor: pointer;
+	border: 1px solid black;
+	background: lightgreen;
+	color: black;
+	font-size: 10px;
+	float: left;
+}
+
+.customloop .functional {
+	width: 50px;
+	height: 17px;
+	float: right;
+}
+
+
+.customloop .cancel {
+	background: lightgray;
+}
+
+
+.customloop h2 {
+	font-size: 16px;
+	font-weight: normal;
+	background: transparent;
+	text-align: start;
+	margin: 0;
+	border: 0;
+	padding: 0;
+}
+
+
+.customloop input {
+	display: inline-block;
+	float: right;
+	/*100% - img width(20px)*/
+	width: calc(100% - 20px);
+}
+
+.customloop p {
+	font-size: 12px;
+}
+
+.customloop .buttoncontainer {
+	 margin-top: 5px;
+}
+
+.customloop .content {
+	height: 25px;
+}
+
+.customloop .moveright {
+	width: 40%;
+	float: right;
+}

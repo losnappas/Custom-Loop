@@ -28,3 +28,53 @@ multi-checkpoint system.
 
 
 contextMenus not supported on FF for Android -> does not work? untested . . .
+
+//^^^^^^^^^^ thoughts v2.3 and before
+
+swap to using 		media.addEventListener('timeupdate', ()=>{
+
+literally made for this.
+
+
+what happens in the code now:
+	html5looper.js:
+		timer runs in timer()
+
+
+	advanced-menu.js:
+
+
+
+class  for every creation?
+	every media elemnt has its own 
+		scrapped.
+			doesn't make sense to create class objects. Every context menu click is a call with no info of previous calls
+
+
+
+
+to test:
+	attach setStart etc. to medialement prototype.
+		then call like "element.setStart()"
+			-> this.startTime=xxx
+				where "this" is element context?
+					could work?
+						works but apparently bad practice
+							dropped
+								till custom elements?
+
+
+use window.var instead of element attribs?
+	benefits:
+		no more hassling with array parsing
+	cons:
+		naming the variables.
+			this isn't php...
+				make a master var
+					hang everything from that
+						isn't that the convention?..
+							gross.
+
+
+
+322,590,645,776,826,1041,1116,1848

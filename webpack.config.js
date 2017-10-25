@@ -7,12 +7,14 @@ module.exports = {
     // and included in the extension source.
     // For example, you could add a background script like:
     // background: './src/background.js',
-    html5looper: './src/html5looper.js'
+    'addon/content_scripts/html5looper': './src/testrewrite.js',
+    'addon/background/background': './src/background.js'
   },
   output: {
     // This copies each source entry into the extension dist folder named
     // after its entry config key.
-    path: 'addon/content_scripts',
+    // path: 'addon/content_scripts',
+    path: './',
     filename: '[name].js',
   },
   module: {
