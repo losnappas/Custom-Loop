@@ -14,7 +14,18 @@ var timeListener = (info, tab) => {
 		file: "/content_scripts/html5looper.js",
 		frameId: info.frameId
 	})
-	.then( () => browser.tabs.sendMessage(tab.id, { mediaSrcURL: info.srcUrl, command: info.menuItemId } ) )
+	.then( 
+		() => browser.tabs.sendMessage(
+			tab.id,
+		 	{ 
+		 		mediaSrcURL: info.srcUrl,
+		 	 	command: info.menuItemId 
+		 	},
+		  	{ 
+		  		frameId: info.frameId 
+		  	} 
+		  ) 
+	)
 	.catch( (err)=> console.error("reloadListener error:", err)	);	
 
 }

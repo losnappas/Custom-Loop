@@ -65,7 +65,12 @@
 			file: "/content_scripts/html5looper.js",
 			frameId: info.frameId
 		}).then(function () {
-			return browser.tabs.sendMessage(tab.id, { mediaSrcURL: info.srcUrl, command: info.menuItemId });
+			return browser.tabs.sendMessage(tab.id, {
+				mediaSrcURL: info.srcUrl,
+				command: info.menuItemId
+			}, {
+				frameId: info.frameId
+			});
 		}).catch(function (err) {
 			return console.error("reloadListener error:", err);
 		});
