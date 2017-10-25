@@ -7,7 +7,7 @@ module.exports = {
     // and included in the extension source.
     // For example, you could add a background script like:
     // background: './src/background.js',
-    'addon/content_scripts/html5looper': './src/testrewrite.js',
+    'addon/content_scripts/html5looper': './src/html5looper.js',
     'addon/background/background': './src/background.js'
   },
   output: {

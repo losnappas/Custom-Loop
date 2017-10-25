@@ -1,221 +1,257 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import AdvancedMenu from './advanced-menu';
+import React from "react"
+import ReactDOM from "react-dom"
+import AdvancedMenuWrapper, { AdvancedMenu } from "./advanced-menu"
+import Alert from "react-s-alert"
 
-const CHECK_INTERVAL = 500; // in ms
-
-var element;
-
-
-var arrayify = arr => {
-	return JSON.parse("[" + arr + "]");
+(function(){
+// TODO: need to stop using media.ontimeupdate=x; what if the web page already defines that? It just gets stolen and
+//  this addon will then wreck the website. .ontimeupdate handler is very rare so good enough for now.
+/*
+ Dirty IFDEF trick to avoid multiple content script injections
+*/
+if ( window.customLoop ) {
+  return
 }
 
 
-//check all custom looped media elements per interval if media is reaching the loop endTime
-var timer = (times) => {
+// Cut before to not go over. 0.5 seems okay.
+const SECSTOCUT = 0.5
 
-	for (let i = 0; i < times.length; i++) {
-		let startTimes = times[i].startTime;
-		let endTimes = times[i].endTime;
 
-		if(times[i].media.loop && !times[i].media.paused && endTimes[times[i].segment]<=times[i].media.currentTime){
-			
-			let j = 0; //just in case all segments are 0.
-			//skip 0second intervals
-			do{
-				if(times[i].segment<startTimes.length-1)
-					++times[i].segment;
-				else
-					times[i].segment=0;
+/*
+ Iterates through media elements and compares their source to the 
+  src given by context menu click in background script.
 
-				++j;
-			}while(endTimes[times[i].segment]-startTimes[times[i].segment]==0 && j<=startTimes.length);
-
-			//move playback to next segment start
-			times[i].media.currentTime = startTimes[times[i].segment];
-		}
-	}
+ Some websites, like YouTube, will not give a src URL so do a length check.
+  Not the greatest solution and some unlucky websites will break the addon.
+  https://bugzilla.mozilla.org/show_bug.cgi?id=1398453
+*/
+function getMedia ( url ) {
+  let medias = document.querySelectorAll("video, audio");
+  
+  for ( let media of medias ) {
+    if ( media.currentSrc === url  ||  medias.length === 1 ) {
+      return media
+    }
+  }
 }
 
-//creates/modifies a list of objects with the currently custom looped media elements.
-var loopingMediaElementsToArray = () => {
-	let times = [];
-	let media = document.querySelectorAll("video, audio");
+function createAdvancedMenu ( loop ) {
+  let anchor = document.getElementById ("forCustomLoopAdvancedMenu")
 
-	for (let i = 0; i < media.length; i++) {
-		let timeobj = {}; //holds media element and start&end times arrays
-		timeobj.media = media[i];
-		if (media[i].hasAttribute('startTime')){
-			timeobj.startTime = arrayify(media[i].getAttribute('startTime'));
-			timeobj.endTime = arrayify(media[i].getAttribute('endTime'));
-			timeobj.segment = 0;
-			times.push(timeobj); // [{media: HTMLMediaElement, startTime: [], endTime: [], segment: 0}]
-		}
-	}
-	if(times.length>0)
-		window.interval = setInterval(timer, CHECK_INTERVAL, times);
-}
+  // "loopTimer" is "start looping like this".
+  const advancedMenu = <AdvancedMenu 
+                          defaults={ loop.getSettings().checkpoints } 
+                          max={ loop.getMediaDuration() } 
+                          loopTimer={ loop.advancedInit } 
+                          getCurrentTime={ loop.getMediaCurrentTime }
+                        />
 
 
-var findElement = url => {
+  if ( anchor == null ) {
+    anchor = document.createElement ("div")
+    anchor.id = "forCustomLoopAdvancedMenu"
+    document.body.appendChild ( anchor )
+    
+    // Create the menu
+    ReactDOM.render ( <AdvancedMenuWrapper />, anchor )
+  }
 
-	let media = document.querySelectorAll("video, audio");
-	
-	
-	//loop through
-	for (let lelement of media){
-		// if the info of the source, given by the contextMenu item click matches
-		if(lelement.currentSrc==url || media.length===1){ // media.length check because of YOUTUBE videos not giving off a srcUrl on context menu click.
-			element = lelement;
-			break;
-		}
-	}
+  // Open menu
+  let alertId = Alert.warning(advancedMenu, {
+    position: "bottom",
+    effect: "jelly",
+    timeout: "none"
+  })
 
-}
-
-var createAdvancedMenu = () => {
-	let newDiv = document.getElementById("forCustomLoopAdvancedMenu");
-	if (newDiv === null){
-		newDiv = document.createElement("div"); // to attach advanced menu
-		newDiv.id = "forCustomLoopAdvancedMenu";
-		document.body.appendChild(newDiv); //this is for attaching the alert}
-	}
-
-	let defaults = [0, ~~element.duration];
-	
-	if(element.hasAttribute('startTime') && element.hasAttribute('endTime')){
-		defaults = mergeSortedArray( arrayify(element.getAttribute('startTime')), arrayify(element.getAttribute('endTime')));
-	}
-
-	// console.log("hi")
-	
-	//create advanced options alert on context menu so it'll be done by the time 'advanced' is pressed?
-	const am = <AdvancedMenu defaults={defaults} max={~~element.duration} loopTimer={loopTimer} />; // looptimer=loopchecker because last minute changes cba
-	ReactDOM.render(am, newDiv);
-	//var myMenu = ReactDOM.render(am, newDiv);  //?
-	//then myMenu.state.value;
-	//could somehow turn this whole advancedmenu into async thing and wait for the values, .then((values)=>looptimer(values))?
 }
 
 /*
-	small rundown:
-		attach the start times and endtimes to the media element as attributes
-		then start the interval to check if currentTime > end time
-		move to next start time
+global var:
+  window.customLoop = {
+    [url1] : {
+      checkpoints: [start,end,start,end...]
+    },
+    [url2]: {
+      checkpoints: []
+    }
+    //etc..
+  }
+
 */
+function handleContextMenuClick ( { mediaSrcURL, command } ) {
+  // 2 choices: remove listener and ReactDOM.render every time, or don't remove listener and do the tricks...
+  // // Remove message listener. Next time it will be re-injected.
+  // // browser.runtime.onMessage.removeListener( handleContextMenuClick )
+  // Uses the dirty tricks.
 
-var loopTimer = (request, sender, sendResponse) =>{	
-	//remove the listener, because next time there will be a new injection of this script. We don't want to leave things hanging.
-	//phase 2: don't need to remove because of hasListener()?? mb it's smart. -  it's not.
-	if(browser.runtime.onMessage.hasListener(loopTimer))
-		browser.runtime.onMessage.removeListener(loopTimer);
+  let media = getMedia ( mediaSrcURL )
 
+  if ( window.customLoop == null ) {
+    window.customLoop = {}
+  }
 
-	if(typeof request.url != undefined)
-		findElement(request.url);
+  if ( window.customLoop[ mediaSrcURL ] == null ) {
+    window.customLoop[ mediaSrcURL ] = {
+      checkpoints: [ 0, media.duration ]
+    }
+  }
 
-	if (typeof element == undefined || !element) return;
+  let settings = window.customLoop[ mediaSrcURL ]
 
+  let loop = loopOperations ( media, settings )
 
-	let startTime, endTime, reseted=false;
-	
-	// used advanced menu?
-	if(Array.isArray(request)){
-		startTime=[];
-		endTime=[];
-
-		//push the created segments onto the arrays which are used in the timer
-		for (var i = 0; i < request.length-1; i+=2) {
-			//check that end is smaller than media.duration
-			//need to check startTime too in case it's also media.duration, so, to be skipped
-			let calcEnd = request[i+1];
-			if (calcEnd== ~~element.duration) {calcEnd-=1;} //floor media.duration
-			let calcStart = request[i];
-			if (calcStart== ~~element.duration) {calcStart-=1;}
-			startTime.push(calcStart);
-			endTime.push(calcEnd);
-		}
-	}
-	else
-	{
-
-		if(element.hasAttribute('startTime')){
-			startTime=element.getAttribute('startTime');
-			endTime=element.getAttribute('endTime');
-		} else {
-			startTime = 0;
-			endTime = element.duration-1;
-		}
+  switch ( command ) {
+    case "looperstart":
+      loop.setStart ()
+      break
+    case "looperend":
+      loop.setEnd ()
+      break
+    case "looperreset":
+      loop.reset ()
+      break
+    case "looperadvanced":
+      createAdvancedMenu ( loop )
+      return
+    default:
+      console.log( "looper bug: switch defaulted. Command was: ", command )
+      return
+  }
+}
 
 
-		switch(request.command){
-			case "looperstart":
-				startTime = element.currentTime;
-				if(startTime>endTime)
-					endTime=element.duration-1;
-				break;
-			case "looperend":
-				endTime = element.currentTime;
-				if(endTime<startTime)
-					startTime=0;
-				break;
-			case "looperreset":  //Attempting to remove an attribute that is not on the element doesn't raise an exception. so whatever.
-				if (element.hasAttribute('startTime')) element.removeAttribute('startTime');
-				if (element.hasAttribute('endTime')) element.removeAttribute('endTime');
-				if (element.hasAttribute('segment')) element.removeAttribute('segment');
-				reseted = true;
-				break;
-			case "looperadvanced":
-				createAdvancedMenu();
-				return;
-			default:
-				console.log("html5looper bug: DEFAULTED");
-				return;
-		}
+/*
+  This is like a module. The difficulty of addEventListener is losing context. Then they can't be removed.
+*/
+function loopOperations ( media, settings ) {
+  let startTime = settings.checkpoints[ 0 ]
+  let endTime = settings.checkpoints[ 1 ]
 
-		if (endTime > element.duration)
-			endTime = element.duration-1; //iframes use this sometimes
+  if ( settings.checkpoints.length > 2 ) {
+    startTime = 0
+    endTime = media.duration
+  }
 
-		if (startTime < 0)
-			startTime = 0;
+  let simpleTimeListener = () => {
+    if ( settings.checkpoints[ 1 ] - SECSTOCUT <= media.currentTime ) {
+      // media.fastSeek( settings.checkpoints[ 0 ] )
 
-	}
+      // Some extra conditions. If loop is on & it's not paused
+      if ( media.loop && !media.paused ) {
+        media.currentTime = settings.checkpoints[ 0 ]
+      }
+    }
+
+  }
 
 
-	if (!reseted) {
-		element.setAttribute('startTime', startTime); //attach startTime and endTime to this specific media element as if to save them.
-		element.setAttribute('endTime', endTime);
-	}
+  let simpleApply = () => {
+    settings.checkpoints = [
+      startTime,
+      endTime
+    ]
 
-	//set interval to check on if the current time has reached the custom end
-	clearInterval(window.interval);
-	
+    // Because an element can only have one handler but multiple listeners, use a handler.
+    // ^^^again, irrelevant since this script is now injected fully only once.
+    media.ontimeupdate = simpleTimeListener
 
-	loopingMediaElementsToArray(); // have an array of the elements currently being looped.
+    browser.runtime.sendMessage({
+      start: startTime,
+      end: endTime
+    })
+  }
+
+  let setStart = () => {
+    startTime = media.currentTime
+    
+    if ( startTime > endTime ) {
+      endTime = media.duration
+    }
+
+    simpleApply()
+  }
+
+  let setEnd = () => {
+    endTime = media.currentTime
+
+    if ( endTime < startTime ) {
+      startTime = 0
+    }
+
+    simpleApply()
+  }
+
+  let reset = () => {
+    startTime = 0
+    endTime = media.duration
+    
+    simpleApply()
+    media.ontimeupdate = null
+  }
 
 
-	browser.runtime.sendMessage({
-		"start": element.hasAttribute('startTime') ? element.getAttribute('startTime') : 0,
-		 "end": element.hasAttribute('endTime') ? element.getAttribute('endTime') : element.duration
-	});
+  let advancedInit = value => {
+    // end = ar[1], start = ar[0]
+    let segment = 1
 
+    settings.checkpoints = value
+
+    let advancedTimeListener = () => {
+      if ( media.loop && !media.paused ) {
+        if ( settings.checkpoints[ segment ] - SECSTOCUT <= media.currentTime ) {
+          ++segment
+          if ( segment >= settings.checkpoints.length ) {
+            segment = 0
+          }
+
+          // media.fastSeek( settings.checkpoints[ segment ] )
+          media.currentTime = settings.checkpoints[ segment ]
+          ++segment
+        }
+      }
+    }
+
+    // This was used over addEventListener for multi content script injections.
+    // No multi inject after all. Could swap to listener if wanted to.
+    media.ontimeupdate = advancedTimeListener
+
+    browser.runtime.sendMessage({
+      start: 817,
+      end: 817
+    })
+  }
+
+
+  let getMediaCurrentTime = () => {
+    return media.currentTime
+  }
+
+  let getMediaDuration = () => {
+    return media.duration
+  }
+
+  let getSettings = () => {
+    return settings
+  }
+
+
+  return {
+    reset,
+    setEnd,
+    setStart,
+    advancedInit,
+    getMediaCurrentTime,
+    getMediaDuration,
+    getSettings
+  }
 }
 
 
 
 
-//https://stackoverflow.com/a/42688828
-var mergeSortedArray = (a, b) => {
-	var arr = a.concat(b).sort(function(a, b) {
-        return a - b;
-     });
-    return arr;
+if ( !browser.runtime.onMessage.hasListener( handleContextMenuClick ) ) {
+  browser.runtime.onMessage.addListener( handleContextMenuClick )
 }
 
-
-
-if (!browser.runtime.onMessage.hasListener(loopTimer))
-	browser.runtime.onMessage.addListener(loopTimer);
-
-
+}())

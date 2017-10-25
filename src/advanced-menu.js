@@ -1,179 +1,196 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Slider, {Range} from 'rc-slider';
-import Tooltip from 'rc-tooltip';
-import Alert from 'react-s-alert';
-import 'rc-slider/assets/index.css';
-import 'rc-tooltip/assets/bootstrap.css';
-import 'react-s-alert/dist/s-alert-default.css';
-import 'react-s-alert/dist/s-alert-css-effects/jelly.css';
+import React from 'react'
+import ReactDOM from 'react-dom'
+//https://www.npmjs.com/package/rc-slider
+import Slider, {Range} from 'rc-slider'
+import Tooltip from 'rc-tooltip'
+//https://www.npmjs.com/package/react-s-alert
+import Alert from 'react-s-alert'
+import 'rc-slider/assets/index.css'
+import 'rc-tooltip/assets/bootstrap.css'
+import 'react-s-alert/dist/s-alert-default.css'
+import 'react-s-alert/dist/s-alert-css-effects/jelly.css'
+import './styles.css'
+import fancyTimeFormat from './fancyTimeFormat'
 
 
-//range tooltip wouldn't show if const Range = createSliderWithTooltip(Slider.Range); and <Tooltip prefixCls="rc-slider-tooltip" (as example was) + react-modal-dialog
-//put in an issue report.
 // https://react-component.github.io/slider/examples/handle.html
-const createSliderWithTooltip = Slider.createSliderWithTooltip;
-// const Range = createSliderWithTooltip(Slider.Range);
-const Handle = Slider.Handle;
+const createSliderWithTooltip = Slider.createSliderWithTooltip
+// const Range = createSliderWithTooltip(Slider.Range)
+const Handle = Slider.Handle
 
 
 const handle = (props) => {
-  const { value, dragging, index, ...restProps } = props;
+  const { value, dragging, index, ...restProps } = props
   return (
     <Tooltip
       prefixCls="rc-tooltip" //diff from example
       overlay={fancyTimeFormat(value)}
-      visible={dragging}
+      // visible={dragging} // <-- don't want you!!!!
       placement="top"
       key={index}
     >
       <Handle value={value} {...restProps}  />
     </Tooltip>
-  );
-};
+  )
+}
 
+export class AdvancedMenu extends React.Component{
 
-//duplicate code from background.js o_O
-const fancyTimeFormat = function(time)
-{   
-    // Hours, minutes and seconds
-    // ~~ === Math.floor
-    time = ~~time;
-    var hrs = ~~(time / 3600);
-    var mins = ~~((time % 3600) / 60);
-    var secs = time % 60;
+  constructor(props) {
+    super(props)
 
-    // Output like "1:01" or "4:03:59" or "123:03:59"
-    var ret = "";
-
-    if (hrs > 0) {
-        ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
+    // clown fiesta
+    this.state = {
+      value: this.props.defaults,
+      trackColors: [{backgroundColor: 'green'}],
+      currentTime: fancyTimeFormat( this.props.getCurrentTime () ),
+      allGood: (this.props.defaults.length % 2 === 0),
     }
+  }
 
-    ret += "" + mins + ":" + (secs < 10 ? "0" : "");
-    ret += "" + secs;
-    return ret;
+
+  //lifecycles OP!!
+  componentWillMount(){
+    this.colorTrack()
+  }
+
+
+  componentDidMount() {
+    this.timer = setInterval( () => {
+      this.setState({
+        currentTime: fancyTimeFormat( this.props.getCurrentTime () )
+      })      
+    }, 1000 )
+  }
+
+  componentWillUnmount() {
+    clearInterval( this.timer )
+  }
+
+
+  handleClose = () => {
+    Alert.closeAll()
+  }
+
+  handleAddNewToggles = () => {
+    let togglesAdded = ([0, 0]).concat(this.state.value)
+    this.handleChange(togglesAdded)
+    this.colorTrack()
+  }
+
+
+  handleAddNewToggle = () => {
+    let time = this.props.getCurrentTime()
+    
+    let addingToggle = this.state.value.slice()
+
+    for ( let i = 0 ; i < addingToggle.length ; i++ ) {
+      if ( time < addingToggle[ i ] ) {
+        addingToggle.splice( i, 0, time )
+        this.handleChange( addingToggle )
+        this.colorTrack()
+        return
+      }
+    }
+  }
+
+
+  handleChange = newValue => {
+    this.setState({
+      value: newValue,
+      allGood: newValue.length % 2 === 0
+    })
+  }
+
+  //milestone for version 5000
+  //somehow transform into promises for no good reason other than getting rid of the global variable
+  saveChanges = () => {
+    this.props.loopTimer(this.state.value)
+    this.handleClose()
+  }
+
+  //milestone 3: move slider to functional component and clean up the render function
+  colorTrack = () => {
+    let greenTrack = { backgroundColor: 'green' }
+    let redTrack = { backgroundColor: 'red' }
+    let finishedTrack = []
+    for (var i = 0; i < this.state.value.length; i++) {
+      finishedTrack.push(greenTrack, redTrack)
+    }
+    this.setState({trackColors: finishedTrack})
+  }   
+
+  handleManualChange = event => {
+    //throws an error after typing a comma, but catching it is not a good idea since nothing can be done about it
+    //milestone 100: parse the input better, giving an error if saving while the array is no good
+    this.handleChange(JSON.parse( "["+event.target.value+"]"))
+    this.colorTrack()
+  }
+
+  flooring = () => {
+    let x = this.state.value.slice()
+    x = x.map( i => ~~i )
+    return x
+  }
+
+  render() {
+    return (
+      <div className="customloop">
+        <h2>Custom Loop</h2>
+        <div className="content">
+
+          <span className="moveright">
+            <input type="text" onChange={this.handleManualChange} value={this.flooring()} />
+            { this.state.allGood && 
+              <img src={browser.extension.getURL("img/check.png")} alt="Ok" width="15" height="15" /> }
+          </span>
+
+          <p>0 second intervals will <strong>not</strong> be skipped.</p>
+        </div>
+
+        <Range
+          min={0}
+          max={this.props.max}
+          onChange={this.handleChange}
+          handle={handle}
+          trackStyle={this.state.trackColors}
+          value={this.state.value}
+          ></Range>
+
+        <div className="buttonContainer">
+
+          <button
+            onClick={this.handleAddNewToggles}
+            title="Adds toggles to seconds 0 and 0"
+            >New segment</button>
+
+          <button
+            onClick={this.handleAddNewToggle}
+            title="Toggle at current time"
+            >{ this.state.currentTime }</button>
+
+          <button
+            className="functional save"
+            onClick={this.saveChanges}
+            title="Save changes and close"
+            >Save</button>
+
+          <button
+            className="functional cancel"
+            onClick={this.handleClose}
+            >Cancel</button>
+
+        </div>
+      </div>
+    )
+  }
 }
 
 
-const buttonStyle = {width: 80, height: 17, cursor: 'pointer', border: '1px solid black', background: 'lightGreen', color: 'black', fontSize: '10px', float: 'left', paddingLeft: '2px'};
-const saveButtonStyle = {width: 50, height: 17, cursor: 'pointer', border: '1px solid black', background: 'lightGreen', color: 'black', fontSize: '10px', float: 'right'};
-const cancelButtonStyle = {width: 50, height: 17, cursor: 'pointer', border: '1px solid black', background: 'lightGray', color: 'black', fontSize: '10px', float: 'right'};
-
-class AdvancedMenuContent extends React.Component{
-
-	constructor(props) {
-		super(props);
-		this.state = {
-			value: this.props.defaults,
-			trackColors: [{backgroundColor: 'green'}],
-		};
-	}
-
-
-	//lifecycles OP!!
-	componentWillMount(){
-		this.colorTrack();
-	}
-
-  	handleClose = () => Alert.closeAll();
-
-  	handleAddNewToggles = () => {
-  		//javascript arrays are passed by reference. concat returns new array
-  		let togglesAdded = ([0, 0]).concat(this.state.value);
-  		this.handleChange(togglesAdded);
-  		this.colorTrack();
-  	}
-  	/* could do fancy syntax: value=>..({value}) */
-  	handleChange = (newValue) => this.setState({value: newValue});
-
-  	//milestone for version 5000
-  	//somehow transform into promises for no good reason other than getting rid of the global variable
-  	saveChanges = () => {
-  		this.props.loopTimer(this.state.value);
-  		this.handleClose();
-  	}
-
-	colorTrack = () => {
-		let greenTrack = {backgroundColor: 'green'};
-  		let redTrack = {backgroundColor: 'red'};
-  		let finishedTrack = [];
-  		for (var i = 0; i < this.state.value.length; i++) {
-  			finishedTrack.push(greenTrack, redTrack);
-  		}
-  		this.setState({trackColors: finishedTrack});
-	}  	
-
-	handleManualChange = event => {
-		//throws an error after typing a comma, but catching it is not a good idea since nothing can be done about it
-		//milestone 100: parse the input better, giving an error if saving while the array is no good
-		this.handleChange(JSON.parse( "["+event.target.value+"]")); //same as arrayify from html5looper.js. why is there no easy way of helper functions
-	}
-
-	flooring = () => {
-		let x = this.state.value.slice();
-		x.forEach((v, i)=>{x[i]=~~v});
-		return x;
-	}
-
-	render() {
-		return (<div>
-					<h2 style={{fontSize: '16px', fontWeight: 'normal', background: 'transparent', textAlign: 'start', margin: 0, border: 0, padding: 0}}>Custom Loop</h2>
-					<div style={{height: '25px'}}>
-						<input style={{display: 'inline-block', float:'right'}} type="text" onChange={this.handleManualChange} value={this.flooring()} />
-						<p style={{fontSize: '12px'}}>0 second intervals will be skipped.</p>
-					</div>
-						<Range
-							min={0}
-							max={this.props.max}
-							onChange={this.handleChange}
-							handle={handle}
-							trackStyle={this.state.trackColors}
-							value={this.state.value}
-							></Range>
-
-						<div style={{marginTop: '5px'}}>
-							<button
-								onClick={this.handleAddNewToggles}
-								style={buttonStyle}
-								title="Adds toggles to seconds 0 and 0"
-								>New segment</button>
-
-							<button
-								onClick={this.saveChanges}
-								style={saveButtonStyle}
-								title="Save changes and close"
-								>Save</button>
-							<button
-								onClick={this.handleClose}
-								style={cancelButtonStyle}
-								>Cancel</button>
-						</div>
-				</div>
-			);
-	}
+export default class AdvancedMenuWrapper extends React.Component {
+  render() {
+    return (
+      <Alert stack={false} style={{padding: '19.5px'}} />
+    )
+  }
 }
-
-export default class AdvancedMenu extends React.Component{
-	constructor(props){
-		super(props);
-	}
-
-	// listener for context menu item
-	componentDidMount(){
-		//https://www.npmjs.com/package/react-s-alert
-			Alert.warning(<AdvancedMenuContent  {...this.props} />, {
-	            position: 'bottom',
-	            effect: 'jelly',
-	            timeout: 'none'
-        	});
-	}
-
-
-
-	render(){
-		return (<Alert stack={false} style={{padding: '19.5px'}} />);
-	}
-}
-
-
