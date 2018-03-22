@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack -w -v --display-error-details --progress --colors",
-    "start": "web-ext run --browser-console --firefox=\"C:\\Program Files\\Firefox Developer Edition\\firefox.exe\" -s addon/"
+    "start": "web-ext run --browser-console --firefox=\"C:\\Program Files\\Firefox Developer Edition\\firefox.exe\" -s addon/",
+	"pack": "web-ext build -s addon/"
   },
   "author": "",
   "license": "MPL-2.0",

@@ -7,14 +7,14 @@ import Alert from "react-s-alert"
 // TODO: need to stop using media.ontimeupdate=x; what if the web page already defines that? It just gets stolen and
 //  this addon will then wreck the website. .ontimeupdate handler is very rare so good enough for now.
 /*
- Dirty IFDEF trick to avoid multiple content script injections
+ IFDEF trick to avoid multiple content script injections
 */
 if ( window.customLoop ) {
   return
 }
 
 
-// Cut before to not go over. 0.5 seems okay.
+// Cut before segment end to not go over. 0.5 seems okay.
 const SECSTOCUT = 0.5
 
 
@@ -80,11 +80,7 @@ global var:
 
 */
 function handleContextMenuClick ( { mediaSrcURL, command } ) {
-  // 2 choices: remove listener and ReactDOM.render every time, or don't remove listener and do the tricks...
-  // // Remove message listener. Next time it will be re-injected.
-  // // browser.runtime.onMessage.removeListener( handleContextMenuClick )
-  // Uses the dirty tricks.
-
+  //target element for looping
   let media = getMedia ( mediaSrcURL )
 
   if ( window.customLoop == null ) {
@@ -153,7 +149,6 @@ function loopOperations ( media, settings ) {
     ]
 
     // Because an element can only have one handler but multiple listeners, use a handler.
-    // ^^^again, irrelevant since this script is now injected fully only once.
     media.ontimeupdate = simpleTimeListener
 
     browser.runtime.sendMessage({
@@ -197,6 +192,7 @@ function loopOperations ( media, settings ) {
 
     settings.checkpoints = value
 
+	// segment is incremented twice because it has [start, end, start2,end2..]
     let advancedTimeListener = () => {
       if ( media.loop && !media.paused ) {
         if ( settings.checkpoints[ segment ] - SECSTOCUT <= media.currentTime ) {
@@ -255,3 +251,4 @@ if ( !browser.runtime.onMessage.hasListener( handleContextMenuClick ) ) {
 }
 
 }())
+

@@ -3,14 +3,14 @@
 	height: 17px;
 	cursor: pointer;
 	border: 1px solid black;
-	background: lightgreen;
+	background: #fad9fc;
 	color: black;
 	font-size: 10px;
 	float: left;
 }
 
 .customloop .functional {
-	width: 50px;
+	/*width: 60px;*/
 	height: 17px;
 	float: right;
 }
@@ -21,16 +21,22 @@
 }
 
 
-.customloop h2 {
-	font-size: 16px;
+.customloop h3 {
 	font-weight: normal;
 	background: transparent;
 	text-align: start;
 	margin: 0;
 	border: 0;
 	padding: 0;
+	display: inline !important;
+	color: black !important;
+	font-size: initial !important;
 }
 
+.customloop .slider-container {
+	width: 99%;
+	margin: 5px auto;
+}
 
 .customloop input {
 	display: inline-block;
@@ -43,8 +49,8 @@
 	font-size: 12px;
 }
 
-.customloop .buttoncontainer {
-	 margin-top: 5px;
+.customloop .button-container {
+	 margin-top: 2px;
 }
 
 .customloop .content {
@@ -55,3 +61,4 @@
 	width: 40%;
 	float: right;
 }
+

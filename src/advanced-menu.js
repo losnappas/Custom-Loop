@@ -72,13 +72,6 @@ export class AdvancedMenu extends React.Component{
     Alert.closeAll()
   }
 
-  handleAddNewToggles = () => {
-    let togglesAdded = ([0, 0]).concat(this.state.value)
-    this.handleChange(togglesAdded)
-    this.colorTrack()
-  }
-
-
   handleAddNewToggle = () => {
     let time = this.props.getCurrentTime()
     
@@ -87,11 +80,15 @@ export class AdvancedMenu extends React.Component{
     for ( let i = 0 ; i < addingToggle.length ; i++ ) {
       if ( time < addingToggle[ i ] ) {
         addingToggle.splice( i, 0, time )
-        this.handleChange( addingToggle )
-        this.colorTrack()
-        return
+        break
       }
+	  if ( i === ( addingToggle.length -1 ) ) {
+	    addingToggle.push( time )
+	    break
+	  }
     }
+    this.handleChange( addingToggle )
+    this.colorTrack()
   }
 
 
@@ -136,8 +133,8 @@ export class AdvancedMenu extends React.Component{
   render() {
     return (
       <div className="customloop">
-        <h2>Custom Loop</h2>
         <div className="content">
+        <h3>Custom Loop</h3>
 
           <span className="moveright">
             <input type="text" onChange={this.handleManualChange} value={this.flooring()} />
@@ -145,28 +142,25 @@ export class AdvancedMenu extends React.Component{
               <img src={browser.extension.getURL("img/check.png")} alt="Ok" width="15" height="15" /> }
           </span>
 
-          <p>0 second intervals will <strong>not</strong> be skipped.</p>
         </div>
 
-        <Range
-          min={0}
-          max={this.props.max}
-          onChange={this.handleChange}
-          handle={handle}
-          trackStyle={this.state.trackColors}
-          value={this.state.value}
-          ></Range>
+		
+		<div className="slider-container">
 
-        <div className="buttonContainer">
+		   <Range
+				  min={0}
+				  max={this.props.max}
+				  onChange={this.handleChange}
+				  handle={handle}
+				  trackStyle={this.state.trackColors}
+				  value={this.state.value}
+				  ></Range>
+		</div>
 
-          <button
-            onClick={this.handleAddNewToggles}
-            title="Adds toggles to seconds 0 and 0"
-            >New segment</button>
-
+        <div className="button-container">
           <button
             onClick={this.handleAddNewToggle}
-            title="Toggle at current time"
+            title="Add a toggle at current time"
             >{ this.state.currentTime }</button>
 
           <button
@@ -190,7 +184,8 @@ export class AdvancedMenu extends React.Component{
 export default class AdvancedMenuWrapper extends React.Component {
   render() {
     return (
-      <Alert stack={false} style={{padding: '19.5px'}} />
+      <Alert stack={false} />
     )
   }
 }
+

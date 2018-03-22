@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Custom Loop",
-  "version": "2.41",
+  "version": "2.5",
 
   "description": "Loop portions of html5/webm/other videos and audio",
   "homepage_url": "https://github.com/losnappas/Custom-Loop",
@@ -23,5 +23,5 @@
   "web_accessible_resources": [
     "img/check.png"
   ]
-
 }
+
