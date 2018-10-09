@@ -1,5 +1,7 @@
 # CUSTOM LOOP
 
+# MOVED https://gitlab.com/losnappas/Custom-Loop
+
 [https://addons.mozilla.org/en-US/firefox/addon/custom-loop/](https://addons.mozilla.org/en-US/firefox/addon/custom-loop/)
 
 loop parts of audio/video.
